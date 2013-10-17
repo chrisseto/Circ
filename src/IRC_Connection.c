@@ -143,7 +143,7 @@ IRC_Message chunk_message(char* msg)
 		chunked.target = buff;
 		buff = strtok(NULL,"\n");
 		if(buff != NULL)
-			chunked.message = buff;
+			chunked.message = buff + 1;
 		else
 			chunked.message = NULL;	
 		chunked.sender = strtok(chunked.sender,"!");	
