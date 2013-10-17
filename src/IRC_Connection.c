@@ -8,7 +8,7 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 	join_channel(irc,channel);
 	char *buff = malloc(MAXMESSAGESIZE);
 	IRC_Message temp;
-	while(next_line(irc,&buff) && irc->connected)
+	while(next_line(irc,buff) && irc->connected)
 	{
 		temp = chunk_message(buff);
 		switch(temp.type)
@@ -19,11 +19,13 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 					irc->Message_Recieved(&temp);
 				else
 					irc->Bot_Messaged(&temp);
+				break;
 			}
-			break;
 			case PING:
 				pong(irc,temp.message);
-			break;
+				break;
+			default:
+				break;
 		}
 	}
 	free(buff);
@@ -37,7 +39,7 @@ static int connect_to_server(IRC *irc)
 	host = gethostbyname(irc->server);
 	if(host == NULL)
 	{
-		printf("EROR: No such host\n");
+		printf("ERROR: No such host\n");
 		return 0;
 	}
 	memcpy(&server.sin_addr,host->h_addr_list[0],host->h_length);
@@ -90,6 +92,7 @@ int say_to_channel_(IRC *irc, char *channel, char *message)
 	sprintf(buff,"PRVMSG %s :%s\r\n",channel,message);
 	send_raw(irc,buff);
 	free(buff);
+	return 1;
 }
 static void pong(IRC *irc, char *arg)
 {
@@ -111,6 +114,7 @@ static int next_line(IRC *irc, char *msg)
 		if(next == '\n')
 		{
 			msg[i] = '\0';
+			printf("Read: %s\n",msg);
 			return 1;
 		}
 		else if(next != '\r')
@@ -132,7 +136,7 @@ static IRC_Message chunk_message(char* msg)
 	buff = strtok(msg," ");
 	if(msg[0] == ':')
 	{
-		chunked.sender = strtok(buff,"!") + 1;
+		chunked.sender = buff + 1; 
 		buff = strtok(NULL," ");
 		chunked.type = get_type(buff);
 		buff = strtok(NULL," ");
@@ -141,7 +145,8 @@ static IRC_Message chunk_message(char* msg)
 		if(buff != NULL)
 			chunked.message = buff;
 		else
-			chunked.message = NULL;		
+			chunked.message = NULL;	
+		chunked.sender = strtok(chunked.sender,"!");	
 	}
 	else
 	{

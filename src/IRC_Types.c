@@ -63,13 +63,13 @@ void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass)
 	irc->port = Port;
 	irc->nick = Nick;
 	irc->pass = Pass;
-	char *buff = malloc((strlen(Nick)+1)*4);
-	sprintf(buff,"%s %s %s %s",Nick,Nick,Nick,Nick);
-	irc->user = buff;
-	free(buff);
+	irc->user = malloc((strlen(Nick)+1)*4);
+	sprintf(irc->user,"%s %s %s %s",Nick,Nick,Nick,Nick);
 	irc->connected = 0;
 	irc->socket = 0;
 	create_list(&irc->channels,3);
+	irc->Bot_Messaged = NULL;
+	irc->Message_Recieved = NULL;
 }
 
 void free_irc(IRC *irc)
