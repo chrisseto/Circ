@@ -3,6 +3,18 @@
 
 #define MAXUSERSIZE 20
 
+typedef enum
+{
+	PRIVMSG = 0,
+	PONG = 1,
+	MODE = 2,
+	MOTD = 3,
+	KICK = 4,
+	NOTICE = 5,
+	NAMES = 6,
+	PART = 7
+} Message_Type;
+
 typedef struct List
 {
 	char **array;
@@ -12,7 +24,8 @@ typedef struct List
 
 typedef struct IRC_Message
 {
-	IRC_Channel *orgin;
+	Message_Type type;
+	char *target;
 	char *sender;
 	char *message;
 } IRC_Message;

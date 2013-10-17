@@ -6,8 +6,18 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 {
 	connect_to_server(irc);
 	join_channel(channel);
-	//char *buff = malloc(?)
-	//while getline
+	char *buff = malloc(MAXMESSAGESIZE);
+	IRC_Message temp;
+	while(next_line(irc,&buff))
+	{
+		temp = chunk_message(buff);
+		switch(temp.type)
+		{
+			case PRIVMSG:
+			break;
+		}
+	}
+	free(buff);
 	//parse input call callbacks etc
 	//endwhile
 }
@@ -68,38 +78,34 @@ int send_raw(IRC *irc, char *message)
 	}
 	return 1;
 }
-int say_to_channel_(char *channel, char *message)
+int say_to_channel_(IRC *irc, char *channel, char *message)
 {
 	char *buff = malloc(strlen(channel)+strlen(message)+10);
 	sprintf(buff,"PRVMSG %s :%s\r\n",channel,message);
-	send_raw(buff);
+	send_raw(irc,buff);
 	free(buff);
 }
-void pong(char *arg)
+void pong(IRC *irc, char *arg)
 {
 	char *buff = malloc(strlen(arg) + 9);
 	sprintf(buff,"PONG %s\r\n",arg);
 	if(DEBUG) 
 		printf("%s",buff);
-	send_raw(buff);
+	send_raw(irc,buff);
 	free(buff);
 }
-void read_line(char *buff)
+void next_line(IRC *irc, char *msg)
 {
 	//read in line
 	//chunk into irc_message
-	//call call back
 	//free things?
 	char next;
-	char *msg = malloc(551);
 	int i = 0;
-	while(read(sock,&next,1)>0 && i < 551)
+	while(read(sock,&next,1)>0 && i < MAXMESSAGESIZE)//change me to a #DEFINE or some shit
 	{
 		if(next == '\n')
 		{
-			msg[i] = '\0';				
-			parse(msg);
-			free(msg);
+			msg[i] = '\0';
 			return 1;
 		}
 		else if(next != '\r')
@@ -108,7 +114,6 @@ void read_line(char *buff)
 			i++;
 		}
 	}
-	free(msg);
 	//This function needs to be more refined
 	if(DEBUG)
 		printf("Read 0 bytes from socket,Something went wrong\n");
@@ -118,15 +123,20 @@ IRC_Message chunk_message(char* msg)
 {
 	IRC_M chunked;
 	char *buff;
-	char *chunk[5];
 	buff = strtok(msg," ");
-	chunk[0] = buff;
+	chunked.sender = buff + 1;
 	buff = strtok(NULL," ");
-	chunk[1] = buff;
+	chunked.type = get_type(buff);
 	buff = strtok(NULL," ");
-	chunk[2] = buff;
+	chunked.target = buff;
 	buff = strtok(NULL,"\n");
 	if(buff != NULL)
-		chunk[3] = buff;
-	//Load up irc_m
+		chunked.message = buff;
+	else
+		chunked.message = NULL;
+	return chunked;
+}
+Message_Type get_type(char *parse)
+{
+	
 }
