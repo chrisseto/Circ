@@ -178,7 +178,7 @@ static Message_Type get_type(char *parse)
 void IRC_quit(IRC *irc, char *reason)
 {
 	char *buff = malloc(strlen(reason)+6);
-	sprintf(buff,"QUIT :%s",reason);
+	sprintf(buff,"QUIT :%s\n",reason);
 	send_raw(irc,buff);
 	free(buff);
 	close(irc->socket);

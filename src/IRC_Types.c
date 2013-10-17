@@ -69,6 +69,7 @@ void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass)
 	free(buff);
 	irc->connected = 0;
 	irc->socket = 0;
+	create_list(&irc->channels,3);
 }
 
 void free_irc(IRC *irc)
