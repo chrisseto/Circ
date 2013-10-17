@@ -47,4 +47,9 @@ typedef struct IRC
 void create_list(List *n, int initsize);
 void add_element(List *list, char *handle);
 void remove_element(List *list, char *handle);
+void remove_element(List *list, int index);
+int list_contains(List *list, char *search);
+void free_list(List *list);
+void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass);
+void free_irc(IRC *irc);
 #endif

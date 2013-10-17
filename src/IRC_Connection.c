@@ -1,6 +1,6 @@
 #include "../headers/IRC_Connection.h"
 
-
+//How to know if currently in channel?
 
 void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overloaded later
 {
@@ -14,8 +14,12 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 		switch(temp.type)
 		{
 			case PRIVMSG:
-				irc->Message_Recieved(&temp);
-				irc->Bot_Message(&temp);
+			{
+				if(strcmp(temp->target,irc->nick)
+					irc->Message_Recieved(&temp);
+				else
+					irc->Bot_Message(&temp);
+			}
 			break;
 			case PING:
 				pong(temp.message);
@@ -23,11 +27,9 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 		}
 	}
 	free(buff);
-	//parse input call callbacks etc
-	//endwhile
 }
 
-int connect_to_server(IRC *irc)
+static int connect_to_server(IRC *irc)
 {
 	//Creating socket and other networking black magic
 	struct sockaddr_in server;
@@ -91,7 +93,7 @@ int say_to_channel_(IRC *irc, char *channel, char *message)
 	send_raw(irc,buff);
 	free(buff);
 }
-void pong(IRC *irc, char *arg)
+static void pong(IRC *irc, char *arg)
 {
 	char *buff = malloc(strlen(arg) + 9);
 	sprintf(buff,"PONG %s\r\n",arg);
@@ -100,7 +102,7 @@ void pong(IRC *irc, char *arg)
 	send_raw(irc,buff);
 	free(buff);
 }
-void next_line(IRC *irc, char *msg)
+static void next_line(IRC *irc, char *msg)
 {
 	//read in line
 	//chunk into irc_message
@@ -125,7 +127,7 @@ void next_line(IRC *irc, char *msg)
 		printf("Read 0 bytes from socket,Something went wrong\n");
 	return 0;
 }
-IRC_Message chunk_message(char* msg)
+static IRC_Message chunk_message(char* msg)
 {
 	//:<sender> <command> <params> :<message>
 	//<command> :<message>
@@ -135,7 +137,7 @@ IRC_Message chunk_message(char* msg)
 	buff = strtok(msg," ");
 	if(msg[0] == ':')
 	{
-		chunked.sender = buff + 1;
+		chunked.sender = strtok(buff,"!") + 1;
 		buff = strtok(NULL," ");
 		chunked.type = get_type(buff);
 		buff = strtok(NULL," ");
@@ -144,7 +146,7 @@ IRC_Message chunk_message(char* msg)
 		if(buff != NULL)
 			chunked.message = buff;
 		else
-			chunked.message = NULL;
+			chunked.message = NULL;		
 	}
 	else
 	{
@@ -156,7 +158,7 @@ IRC_Message chunk_message(char* msg)
 	}
 	return chunked;
 }
-Message_Type get_type(char *parse)
+static Message_Type get_type(char *parse)
 {
 	if(strcmp(parse,"PING")
 		return PING;
