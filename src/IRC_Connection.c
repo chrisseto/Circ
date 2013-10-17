@@ -14,6 +14,11 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 		switch(temp.type)
 		{
 			case PRIVMSG:
+				irc->Message_Recieved(&temp);
+				irc->Bot_Message(&temp);
+			break;
+			case PING:
+				pong(temp.message);
 			break;
 		}
 	}
@@ -121,6 +126,7 @@ void next_line(IRC *irc, char *msg)
 }
 IRC_Message chunk_message(char* msg)
 {
+	//IN PROGRESS
 	IRC_M chunked;
 	char *buff;
 	buff = strtok(msg," ");

@@ -1,6 +1,7 @@
 #ifndef IRC_CONNECTION_H
 #define IRC_CONNECTION_H
 #include "IRC_Types.h"
+#define MAXMESSAGESIZE 551
 //Everything will return 1 on success and 0 on failure
 
 

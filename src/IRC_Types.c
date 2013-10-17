@@ -22,6 +22,17 @@ void remove_element(List *list, char *handle)
 	
 }
 
+void remove_element(List *list, int index)
+{
+	char **temp = list->array;
+	list->array = malloc((list->size-1) * sizeof(char *));
+	memcpy(temp,list->array,index-1);
+	memcpy(list->array+(sizeof(char *)*index),temp+(sizeof(char *)*index),list->size - index);//this needs work
+	free(temp);	
+	list->size--;
+	list->used--;
+}
+
 int list_contains(List *list, char *search)
 {
 	

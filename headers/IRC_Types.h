@@ -6,7 +6,7 @@
 typedef enum
 {
 	PRIVMSG = 0,
-	PONG = 1,
+	PING = 1,
 	MODE = 2,
 	MOTD = 3,
 	KICK = 4,
