@@ -23,13 +23,13 @@ void remove_element(List *list, char *handle)
 	{
 		if(strcmp(handle,list->array[i])==0)
 		{
-			remove_element(list,i);
+			remove_elementn(list,i);
 			break;		
 		}
 	}
 }
 
-void remove_element(List *list, int index)
+void remove_elementn(List *list, int index)
 {
 	char **temp = list->array;
 	list->array = malloc((list->size-1) * sizeof(char *));
@@ -44,7 +44,7 @@ int list_contains(List *list, char *search)
 {
 	for(int i = 0; i < list->used; i++)
 	{
-		if(strcmp(handle,list->array[i])==0)
+		if(strcmp(search,list->array[i])==0)
 			return 1;
 	}
 	return 0;
@@ -73,5 +73,5 @@ void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass)
 
 void free_irc(IRC *irc)
 {
-
+	irc = NULL;
 }

@@ -5,7 +5,7 @@
 void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overloaded later
 {
 	connect_to_server(irc);
-	join_channel(channel);
+	join_channel(irc,channel);
 	char *buff = malloc(MAXMESSAGESIZE);
 	IRC_Message temp;
 	while(next_line(irc,&buff) && irc->connected)
@@ -15,14 +15,14 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 		{
 			case PRIVMSG:
 			{
-				if(strcmp(temp->target,irc->nick)
+				if(strcmp(temp.target,irc->nick)==0)
 					irc->Message_Recieved(&temp);
 				else
-					irc->Bot_Message(&temp);
+					irc->Bot_Messaged(&temp);
 			}
 			break;
 			case PING:
-				pong(temp.message);
+				pong(irc,temp.message);
 			break;
 		}
 	}
@@ -56,25 +56,23 @@ static int connect_to_server(IRC *irc)
 	//<\black magic>
 
 	//Sending information to join sever
-	buff = malloc(strlen(irc->pass)+strlen(irc->nick)+strlen(irc->user)+21);
+	char *buff = malloc(strlen(irc->pass)+strlen(irc->nick)+strlen(irc->user)+21);
 	sprintf(buff,"PASS %s\r\nNICK %s\r\nUSER %s\r\n",irc->pass,irc->nick,irc->user);
-	send_raw(buff);
+	send_raw(irc,buff);
 	free(buff);
-	if(DEBUG)
-		printf("Connected to %s:%d\n",irc->server,irc->port);
+	printf("Connected to %s:%d\n",irc->server,irc->port);
 	irc->connected = 1;
 	return 1;
 }
 int join_channel(IRC *irc, char *channel)
 {
-	if(DEBUG)
-		printf("Joining %s\n",channel);
+	printf("Joining %s\n",channel);
 	char *buff = malloc(strlen(channel)+7);
 	sprintf(buff,"JOIN %s\r\n",channel);
-	send_raw(buff);
+	send_raw(irc,buff);
 	free(buff);
 	//Add check to make sure of channel joining
-	add_element(irc->channels,channel);
+	add_element(&irc->channels,channel);
 	return 1;	
 }
 int send_raw(IRC *irc, char *message)
@@ -96,20 +94,19 @@ int say_to_channel_(IRC *irc, char *channel, char *message)
 static void pong(IRC *irc, char *arg)
 {
 	char *buff = malloc(strlen(arg) + 9);
-	sprintf(buff,"PONG %s\r\n",arg);
-	if(DEBUG) 
-		printf("%s",buff);
+	sprintf(buff,"PONG %s\r\n",arg); 
+	printf("%s",buff);
 	send_raw(irc,buff);
 	free(buff);
 }
-static void next_line(IRC *irc, char *msg)
+static int next_line(IRC *irc, char *msg)
 {
 	//read in line
 	//chunk into irc_message
 	//free things?
 	char next;
 	int i = 0;
-	while(read(sock,&next,1)>0 && i < MAXMESSAGESIZE)//change me to a #DEFINE or some shit
+	while(read(irc->socket,&next,1)>0 && i < MAXMESSAGESIZE)
 	{
 		if(next == '\n')
 		{
@@ -123,8 +120,6 @@ static void next_line(IRC *irc, char *msg)
 		}
 	}
 	//This function needs to be more refined
-	if(DEBUG)
-		printf("Read 0 bytes from socket,Something went wrong\n");
 	return 0;
 }
 static IRC_Message chunk_message(char* msg)
@@ -132,7 +127,7 @@ static IRC_Message chunk_message(char* msg)
 	//:<sender> <command> <params> :<message>
 	//<command> :<message>
 	//IN PROGRESS
-	IRC_M chunked;
+	IRC_Message chunked;
 	char *buff;
 	buff = strtok(msg," ");
 	if(msg[0] == ':')
@@ -160,23 +155,32 @@ static IRC_Message chunk_message(char* msg)
 }
 static Message_Type get_type(char *parse)
 {
-	if(strcmp(parse,"PING")
+	if(strcmp(parse,"PING") == 0 )
 		return PING;
-	if(strcmp(parse,"PRIVMSG")
+	if(strcmp(parse,"PRIVMSG") == 0 )
 		return PRIVMSG;
-	if(strcmp(parse,"MODE")
+	if(strcmp(parse,"MODE") == 0 )
 		return MODE;
-	if(strcmp(parse,"KICK")
+	if(strcmp(parse,"KICK") == 0 )
 		return KICK;
-	if(strcmp(parse,"MOTD")
+	if(strcmp(parse,"MOTD") == 0 )
 		return MOTD;
-	if(strcmp(parse,"PART")
+	if(strcmp(parse,"PART") == 0 )
 		return PART;
-	if(strcmp(parse,"NOTICE")
+	if(strcmp(parse,"NOTICE") == 0 )
 		return NOTICE;
-	if(strcmp(parse,"NAMES")
+	if(strcmp(parse,"NAMES") == 0 )
 		return NAMES;
 	return -1;
-	//if(strcmp(parse,"")
+	//if(strcmp(parse,"") == 0 )
 		//return ;
+}
+void IRC_quit(IRC *irc, char *reason)
+{
+	char *buff = malloc(strlen(reason)+6);
+	sprintf(buff,"QUIT :%s",reason);
+	send_raw(irc,buff);
+	free(buff);
+	close(irc->socket);
+	free_irc(irc);
 }
