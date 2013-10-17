@@ -1,5 +1,7 @@
 #include "../headers/IRC_Types.h"
 
+//everything here needs better error handling
+
 void create_list(List *n, int initsize)
 {
 	n->size = initsize;
@@ -76,3 +78,12 @@ void free_irc(IRC *irc)
 {
 	irc = NULL;
 }
+
+void print_message(IRC_Message *msg)
+{
+	printf("%s: %s\n",msg->sender,msg->message);
+}
+
+
+
+

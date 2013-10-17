@@ -56,4 +56,5 @@ int list_contains(List *list, char *search);
 void free_list(List *list);
 void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass);
 void free_irc(IRC *irc);
+void print_message(IRC_Message *msg);
 #endif

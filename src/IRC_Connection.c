@@ -11,14 +11,15 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 	while(next_line(irc,buff) && irc->connected)
 	{
 		temp = chunk_message(buff);
+			print_message(&temp);
 		switch(temp.type)
 		{
 			case PRIVMSG:
 			{
-				if(strcmp(temp.target,irc->nick)==0)
-					irc->Message_Recieved(&temp);
-				else
+				if(strcmp(temp.target,irc->nick)==0 && irc->Bot_Messaged != NULL)
 					irc->Bot_Messaged(&temp);
+				else if(irc->Message_Recieved != NULL)
+					irc->Message_Recieved(&temp);
 				break;
 			}
 			case PING:
@@ -31,7 +32,7 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 	free(buff);
 }
 
-static int connect_to_server(IRC *irc)
+int connect_to_server(IRC *irc)
 {
 	//Creating socket and other networking black magic
 	struct sockaddr_in server;
@@ -94,7 +95,7 @@ int say_to_channel_(IRC *irc, char *channel, char *message)
 	free(buff);
 	return 1;
 }
-static void pong(IRC *irc, char *arg)
+void pong(IRC *irc, char *arg)
 {
 	char *buff = malloc(strlen(arg) + 9);
 	sprintf(buff,"PONG %s\r\n",arg); 
@@ -102,7 +103,7 @@ static void pong(IRC *irc, char *arg)
 	send_raw(irc,buff);
 	free(buff);
 }
-static int next_line(IRC *irc, char *msg)
+int next_line(IRC *irc, char *msg)
 {
 	//read in line
 	//chunk into irc_message
@@ -114,7 +115,6 @@ static int next_line(IRC *irc, char *msg)
 		if(next == '\n')
 		{
 			msg[i] = '\0';
-			printf("Read: %s\n",msg);
 			return 1;
 		}
 		else if(next != '\r')
@@ -126,11 +126,11 @@ static int next_line(IRC *irc, char *msg)
 	//This function needs to be more refined
 	return 0;
 }
-static IRC_Message chunk_message(char* msg)
+IRC_Message chunk_message(char* msg)
 {
 	//:<sender> <command> <params> :<message>
 	//<command> :<message>
-	//IN PROGRESS
+	//IN PROGRESS possibly remove buff?
 	IRC_Message chunked;
 	char *buff;
 	buff = strtok(msg," ");
@@ -158,7 +158,7 @@ static IRC_Message chunk_message(char* msg)
 	}
 	return chunked;
 }
-static Message_Type get_type(char *parse)
+Message_Type get_type(char *parse)
 {
 	if(strcmp(parse,"PING") == 0 )
 		return PING;
