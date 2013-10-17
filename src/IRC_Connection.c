@@ -8,7 +8,7 @@ void start_IRC_loop(IRC *irc, char *channel) //channel will be expanded or overl
 	join_channel(channel);
 	char *buff = malloc(MAXMESSAGESIZE);
 	IRC_Message temp;
-	while(next_line(irc,&buff))
+	while(next_line(irc,&buff) && irc->connected)
 	{
 		temp = chunk_message(buff);
 		switch(temp.type)
@@ -72,7 +72,8 @@ int join_channel(IRC *irc, char *channel)
 	send_raw(buff);
 	free(buff);
 	//Add check to make sure of channel joining
-	add_element(irc->channels,channel);	
+	add_element(irc->channels,channel);
+	return 1;	
 }
 int send_raw(IRC *irc, char *message)
 {
@@ -126,23 +127,54 @@ void next_line(IRC *irc, char *msg)
 }
 IRC_Message chunk_message(char* msg)
 {
+	//:<sender> <command> <params> :<message>
+	//<command> :<message>
 	//IN PROGRESS
 	IRC_M chunked;
 	char *buff;
 	buff = strtok(msg," ");
-	chunked.sender = buff + 1;
-	buff = strtok(NULL," ");
-	chunked.type = get_type(buff);
-	buff = strtok(NULL," ");
-	chunked.target = buff;
-	buff = strtok(NULL,"\n");
-	if(buff != NULL)
-		chunked.message = buff;
+	if(msg[0] == ':')
+	{
+		chunked.sender = buff + 1;
+		buff = strtok(NULL," ");
+		chunked.type = get_type(buff);
+		buff = strtok(NULL," ");
+		chunked.target = buff;
+		buff = strtok(NULL,"\n");
+		if(buff != NULL)
+			chunked.message = buff;
+		else
+			chunked.message = NULL;
+	}
 	else
-		chunked.message = NULL;
+	{
+		chunked.type = get_type(buff);
+		buff = strtok(NULL," ");
+		chunked.message = buff + 1;
+		chunked.sender = NULL;
+		chunked.target = NULL;
+	}
 	return chunked;
 }
 Message_Type get_type(char *parse)
 {
-	
+	if(strcmp(parse,"PING")
+		return PING;
+	if(strcmp(parse,"PRIVMSG")
+		return PRIVMSG;
+	if(strcmp(parse,"MODE")
+		return MODE;
+	if(strcmp(parse,"KICK")
+		return KICK;
+	if(strcmp(parse,"MOTD")
+		return MOTD;
+	if(strcmp(parse,"PART")
+		return PART;
+	if(strcmp(parse,"NOTICE")
+		return NOTICE;
+	if(strcmp(parse,"NAMES")
+		return NAMES;
+	return -1;
+	//if(strcmp(parse,"")
+		//return ;
 }

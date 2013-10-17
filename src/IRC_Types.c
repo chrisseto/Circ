@@ -19,7 +19,14 @@ void add_element(List *list, char *handle)
 
 void remove_element(List *list, char *handle)
 {
-	
+	for(int i = 0; i < list->used; i++)
+	{
+		if(strcmp(handle,list->array[i])==0)
+		{
+			remove_element(list,i);
+			break;		
+		}
+	}
 }
 
 void remove_element(List *list, int index)
@@ -27,7 +34,7 @@ void remove_element(List *list, int index)
 	char **temp = list->array;
 	list->array = malloc((list->size-1) * sizeof(char *));
 	memcpy(temp,list->array,index-1);
-	memcpy(list->array+(sizeof(char *)*index),temp+(sizeof(char *)*index),list->size - index);//this needs work
+	memcpy(temp+(sizeof(char *)*index),list->array+(sizeof(char *)*index),list->size - index);//this needs work
 	free(temp);	
 	list->size--;
 	list->used--;
@@ -35,12 +42,19 @@ void remove_element(List *list, int index)
 
 int list_contains(List *list, char *search)
 {
-	
+	for(int i = 0; i < list->used; i++)
+	{
+		if(strcmp(handle,list->array[i])==0)
+			return 1;
+	}
+	return 0;
 }
 
 void free_list(List *list)
 {
-
+	free(list->array);
+	list->size=0;
+	list->used=0;
 }
 
 void IRC_init(IRC *irc, char *Server, int Port, char* Nick, char* Pass)
