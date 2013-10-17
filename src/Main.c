@@ -1,6 +1,7 @@
+#include "../headers/IRC_Connection.h"
+
 #define LOGGING 1
 #define DEBUG 1
-#include "../headers/IRC_Connection.h"
 
 void main(int argc, char *args[])
 {
